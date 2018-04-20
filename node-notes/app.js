@@ -10,17 +10,30 @@ const command = process.argv[2];
 // console.log('Command: ', command);
 // console.log('Yargs: ', argv);
 
+console.log("");
 if (command === 'add') {
-	notes.addNote(argv.title, argv.body);
+	const note = notes.addNote(argv.title, argv.body);
+	if(note) {
+		console.log("Note added to notes \n");
+		notes.logNote(note);
+	} else {
+		console.log("A note with that title already exists!");
+	}
 } 
 else if (command === 'list') {
 	notes.getAll();
 } 
 else if (command === 'read') {
-	notes.getNote(argv.title);
+	const returnedNote = notes.getNote(argv.title);
+	if (returnedNote) {
+		notes.logNote(returnedNote);
+	} else {
+		console.log(`Unable to find ${argv.title}`);
+	}
 }
 else if (command === 'remove'){
-	notes.removeNote(argv.title);
+	const removedNote = notes.removeNote(argv.title);
+	console.log( removedNote ? `${argv.title} removed from notes` : 'Note not found');
 }
 else {
 	console.log('Command not recognized');
