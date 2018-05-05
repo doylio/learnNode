@@ -1,12 +1,38 @@
+//Dependancies
 const request = require('request');
+const yargs = require('yargs');
 
-const geocodeApiKey = "AIzaSyAdmOO0Eea_nH_WwciXiPFfjcpByQ-SvEk";
+//Required Files
+const geocode = require('./geocode.js');
+const weather = require('./weather.js');
 
-request({
-	url: "https://maps.googleapis.com/maps/api/geocode/json?address=1301%20lumbard%20st%20Philadelphia" + `&key=${geocodeApiKey}`,
-	json: true
-}, (error, response, body) => {
-	console.log(`Address: ${body.results[0].formatted_address}`);
-	console.log(`Latitude: ${body.results[0].geometry.location.lat}`);
-	console.log(`Longitude: ${body.results[0].geometry.location.lng}`);
+
+const argv = yargs
+	.options({
+		a: {
+			demand: true,
+			alias: "address",
+			describe: "Address for which to fetch weather",
+			string: true,
+		}
+	})
+	.help()
+	.argv;
+
+geocode.geocodeAddress(argv.address, (errorMessage, geocodeResults) => {
+	if(errorMessage) {
+		console.log(errorMessage);
+	} else {
+		console.log(geocodeResults.address);
+		weather.getWeather(geocodeResults.latitude, geocodeResults.longitude, (errorMessage, weatherResults) => {
+			if(errorMessage) {
+				console.log(errorMessage);
+			} else {
+				console.log(`It's currently ${weatherResults.temperature}.  It feels like ${weatherResults.apparentTemperature}`);
+			}
+		});		
+	}
 });
+
+
+
