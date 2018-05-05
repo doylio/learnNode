@@ -2,6 +2,7 @@
 const axios = require('axios');
 const yargs = require('yargs');
 const timestamp = require('unix-timestamp');
+const timeNumber = require('time-number');
 
 //Constants
 const geoAPIKEY = "AIzaSyAdmOO0Eea_nH_WwciXiPFfjcpByQ-SvEk";
@@ -10,17 +11,83 @@ const weatherAPIKEY = "0c2d46adcf0c5f5ce7e55393420c9c10";
 
 const argv = yargs
 	.options({
-		a: {
-			demand: true,
-			alias: "address",
+		address: {
+			demandOption: true,
+			alias: "a",
 			describe: "Address for which to fetch weather",
+			string: true,
+		},
+		current: {
+			demandOption: false,
+			alias: "c",
+			describe: "Set flag for current weather information",
+			boolean: true,
+		},
+		today: {
+			demandOption: false,
+			alias: "t",
+			describe: "Set flag for today's weather forecast",
+			boolean: true,
+		},
+		week: {
+			demandOption: false,
+			alias: "w",
+			describe: "Set flag for weekly forecast",
+			boolean: true,
+		},
+		hour: {
+			demandOption: false,
+			alias: "h",
+			describe: "Search for forecast at a specific time in 24hr format (XX:XX)",
 			string: true,
 		}
 	})
 	.help()
 	.argv;
 
-getWeather(argv.address);
+
+
+console.log("");
+if(argv.c + Boolean(argv.h) + argv.t + argv.w > 1) {
+	console.log("Error:  Only set one flag per request! \n Add -help flag for more info");
+} else if (argv.h) {
+	try {
+		timeNumber.timeToInt(argv.h);
+	} catch(err) {
+		console.log(`Error: supported time formats are 'HH', 'HH:mm', 'HH:mm:ss', provided value: ${argv.h} doesn't match any of them.`);
+	}
+} else {
+	getWeather(argv.address);
+}
+
+
+const alertCheck = (data) => {
+	//Check for high wind speed or high UV index
+}
+
+
+const displayWeather = (weather) => {
+	if(argv.week) {
+		//Print weekly forecast
+		console.log("Weekly Forecast:");
+		console.log(weather.daily.summary);
+		//Forecast for each day
+	} else if(argv.today) {
+		//Print today's forecast
+		//High and low (with time)
+		//POP
+	} else if(argv.h) {
+		const intTime = Math.round(timeNumber.timeToInt(argv.h) / 3600) * 3600;
+		//Temp and POP at that specific hour
+	} else {
+		//Print current forecast
+		const {temperature, apparentTemperature, summary} = weather.data.currently;
+		console.log(`It's currently ${celcius(temperature)}C.  It feels like ${celcius(apparentTemperature)}C.  ${summary}.`);
+	}
+};
+
+
+
 
 async function getWeather(address) {
 	const encodedAddress = encodeURIComponent(address);
@@ -33,17 +100,11 @@ async function getWeather(address) {
 		console.log(geocode.data.results[0].formatted_address);
 
 		const {lat, lng} = geocode.data.results[0].geometry.location;
-		const weatherURL = `https://api.darksky.net/forecast/${weatherAPIKEY}/${lat},${lng}`
+		const weatherURL = `https://api.darksky.net/forecast/${weatherAPIKEY}/${lat},${lng}?units=si`
 
 		const weather = await axios.get(weatherURL);
-		const {temperature, apparentTemperature} = weather.data.currently;
-
-		console.log(`It's currently ${temperature}C.  It feels like ${apparentTemperature}C`);
-
-		const parsedWeather = parseDaily(weather.data);
-
-		console.log(timestamp.toDate(parsedWeather.low.time));
-
+		
+		displayWeather(weather.data);
 
 	} catch (err) {
 		if(err.code === 'ECONNREFUSED') {
@@ -54,21 +115,3 @@ async function getWeather(address) {
 	}
 }
 
-function parseDaily(info) {
-	let high = info.hourly.data[0];
-	let low = info.hourly.data[0];
-
-	for(let i = 0; i < info.hourly.data.length; i++) {
-		if(info.hourly.data[i].temperature > high.temperature) {
-			high = info.hourly.data[i];
-		}
-		if(info.hourly.data[i].temperature < low.temperature) {
-			low = info.hourly.data[i];	
-		}
-	}
-
-	return {
-		high,
-		low,
-	};
-}
