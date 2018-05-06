@@ -1,12 +1,12 @@
 //Dependancies
 const axios = require('axios');
 const yargs = require('yargs');
-const timestamp = require('unix-timestamp');
 const timeNumber = require('time-number');
 
 //Constants
 const geoAPIKEY = "AIzaSyAdmOO0Eea_nH_WwciXiPFfjcpByQ-SvEk";
 const weatherAPIKEY = "0c2d46adcf0c5f5ce7e55393420c9c10";
+const weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 
 const argv = yargs
@@ -20,7 +20,7 @@ const argv = yargs
 		current: {
 			demandOption: false,
 			alias: "c",
-			describe: "Set flag for current weather information",
+			describe: "Set flag for current weather information (default if no flags selected)",
 			boolean: true,
 		},
 		today: {
@@ -61,24 +61,53 @@ if(argv.c + Boolean(argv.h) + argv.t + argv.w > 1) {
 }
 
 
-const alertCheck = (data) => {
+const alertString = (data) => {
 	//Check for high wind speed or high UV index
+	let alerts = "";
+	if(data.uvIndex > 7) {
+		alerts = "\t**ALERT:  HIGH UV INDEX**\n";
+	}
+	if(data.windSpeed > 20) {
+		alerts = alerts + "\t**ALERT:  HIGH WIND SPEED";
+	}
+	return alerts;
+}
+
+const dailyForecastString = (day) => {
+	const d = new Date(day.time * 1000).getDay();
+	const highTime = new Date(day.temperatureHighTime * 1000);
+	const lowTime = new Date(day.temperatureLowTime * 1000);
+	const returnString = 
+		`${weekday[d]}:\n`
+		+ `${alertString(day)}`
+		+ `\t${day.summary}\n`
+		+ `\tHigh: ${day.temperatureHigh}°C (${highTime.getHours()}:${highTime.getMinutes()})\n`
+		+ `\tLow:  ${day.temperatureLow}°C (${lowTime.getHours()}:${lowTime.getMinutes()})\n`
+		+ `\tPOP: ${day.precipProbability * 100}%`
+	;
+	return returnString;
 }
 
 
 const displayWeather = (weather) => {
+	if(weather.alerts) {
+		weather.alerts.forEach(alert => console.log(alert.description));
+	}
 	if(argv.week) {
 		//Print weekly forecast
 		console.log("Weekly Forecast:");
 		console.log(weather.daily.summary);
 		//Forecast for each day
+		for(let i = 0; i < weather.daily.data.length; i++) {
+			console.log(dailyForecastString(weather.daily.data[i]));
+		}
+
 	} else if(argv.today) {
 		//Print today's forecast
-		//High and low (with time)
-		//POP
+		console.log(dailyForecastString(weather.daily.data[0]));
 	} else if(argv.h) {
 		const intTime = Math.round(timeNumber.timeToInt(argv.h) / 3600) * 3600;
-		//Temp and POP at that specific hour
+		//TODO:  Temp and POP at that specific hour
 	} else {
 		//Print current forecast
 		const {temperature, apparentTemperature, summary} = weather.data.currently;
