@@ -1,54 +1,38 @@
-const mongoose = require('mongoose')
+//Libraries
+const express = require('express')
+const bodyParser = require('body-parser')
 
-mongoose.Promise = global.Promise //configures mongoose to use built in promise API
-mongoose.connect('mongodb://localhost:27017/ToDoApp')
+//Local Imports
+const mongoose = require('./db/mongoose')
+const Todo = require('./models/todo')
+const User = require('./models/user')
 
-const Todo = mongoose.model('Todo', {
-	text: {
-		type: String,
-		required: true,
-		minlength: 1,
-		trim: true
-	},
-	completed: {
-		type: Boolean,
-		default: false
-	},
-	completedAt: {
-		type: Number,
-		default: null
-	}
+const app = express()
+
+app.use(bodyParser.json())
+
+app.post('/todos', (req, res) => {
+	let todo = new Todo({
+		text: req.body.text
+	})
+	todo.save().then((doc) => {
+		res.send(doc)
+	}, (err) => {
+		res.status(400).send(err)
+	})
 })
 
-const User = mongoose.model('User', {
-	email: {
-		type: String,
-		required: true,
-		minlength: 1,
-		trim: true
-	}
+app.get('/todos', (req, res) => {
+	Todo.find().then((todos) => {
+		res.send({todos})
+	}, (err) => {
+		res.status(400).send(res)
+	})
 })
 
-const firstUser = new User({email: 'draco_malfoy@hogwarts.edu  '})
-save(firstUser)
+app.listen(3000, () => {
+	console.log("Started on port 3000")
+})
 
-// let newTodo = new Todo({
-// 	text: 'Cook Dinner',
-// })
 
-// newTodo.save().then(console.log, (err) => {
-// 	console.log("Unable to save", err)
-// })
-
-// let secondTodo = new Todo({text: "    Fix the app   "})
-
-// save(secondTodo)
-
-async function save(obj) {
-	try {
-		let res = await obj.save()
-		console.log(res)
-	} catch(err) {
-		console.log(err)
-	}
-}
+module.exports = app
