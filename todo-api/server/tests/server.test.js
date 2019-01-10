@@ -14,78 +14,78 @@ describe('POST /todos', () => {
 	it('should create a new todo', (done) => {
 		let text = 'Test todo text'
 		request(app)
-			.post('/todos')
-			.send({text})
-			.expect(200)
-			.expect((res) => {
-				expect(res.body.text).toBe(text)
-			})
-			.end((err, res) => {
-				if(err) {
-					return done(err)
-				}
+		.post('/todos')
+		.send({text})
+		.expect(200)
+		.expect((res) => {
+			expect(res.body.text).toBe(text)
+		})
+		.end((err, res) => {
+			if(err) {
+				return done(err)
+			}
 
-				Todo.find().then(todos => {
-					expect(todos.length).toBe(3)
-					expect(todos.reverse()[0].text).toBe(text)
-					done()
-				}).catch(err => done(err))
-			});
+			Todo.find().then(todos => {
+				expect(todos.length).toBe(3)
+				expect(todos.reverse()[0].text).toBe(text)
+				done()
+			}).catch(err => done(err))
+		});
 	});
 	it('should not create todo with invalid body data', (done) => {
 		let test = {}
 		request(app)
-			.post('/todos')
-			.send(test)
-			.expect(400)
-			.end((err, res) => {
-				if(err) {
-					return done(err)
-				}
+		.post('/todos')
+		.send(test)
+		.expect(400)
+		.end((err, res) => {
+			if(err) {
+				return done(err)
+			}
 
-				Todo.find().then(todos => {
-					expect(todos.length).toBe(2)
-					done()
-				}).catch(done)
-			});
+			Todo.find().then(todos => {
+				expect(todos.length).toBe(2)
+				done()
+			}).catch(done)
+		});
 	});
 });
  
 describe('GET /todos', () => {
 	it('should get all todos', (done) => {
 		request(app)
-			.get('/todos')
-			.expect(200)
-			.expect(res => {
-				expect(res.body.todos.length).toBe(2)
-			})
-			.end(done);
+		.get('/todos')
+		.expect(200)
+		.expect(res => {
+			expect(res.body.todos.length).toBe(2)
+		})
+		.end(done);
 	});
 });
 
 describe('GET /todos/:id', () => {
 	it('should return todo doc', (done) => {
 		request(app)
-			.get(`/todos/${testTodos[0]._id.toHexString()}`)
-			.expect(200)
-			.expect(res => {
-				expect(res.body.todo.text).toBe(testTodos[0].text)
-			})
-			.end(done);
+		.get(`/todos/${testTodos[0]._id.toHexString()}`)
+		.expect(200)
+		.expect(res => {
+			expect(res.body.todo.text).toBe(testTodos[0].text)
+		})
+		.end(done);
 	});
 	it('should return 404 if todo not found', done => {
 		let hexId = new ObjectID()
 		request(app)
-			.get(`/todos/${hexId.toHexString()}`)
-			.expect(404)
-			.end(done)
+		.get(`/todos/${hexId.toHexString()}`)
+		.expect(404)
+		.end(done)
 	});
 	it('should return 404 for non ObjectIDs', done => {
 		let randomID = Math.round(Math.random() * 1000)
 		request(app)
-			.get(`/todos/${randomID}`)
-			.expect(404)
-			.end(done)
+		.get(`/todos/${randomID}`)
+		.expect(404)
+		.end(done)
 	});
 });
 
@@ -93,34 +93,34 @@ describe('DELETE /todos/:id', () => {
 	it('should remove a todo', done => {
 		let hexId = testTodos[1]._id.toHexString();
 		request(app)
-			.delete(`/todos/${hexId}`)
-			.expect(200)
-			.expect(res => {
-				expect(res.body.todo._id).toBe(hexId);
-			})
-			.end((err, res) => {
-				if(err) {
-					return done(err)
-				}
-				Todo.findById(hexId).then(todo => {
-					expect(todo).toBeNull()
-					done()
-				}).catch(e => done(e));
-			})
+		.delete(`/todos/${hexId}`)
+		.expect(200)
+		.expect(res => {
+			expect(res.body.todo._id).toBe(hexId);
+		})
+		.end((err, res) => {
+			if(err) {
+				return done(err)
+			}
+			Todo.findById(hexId).then(todo => {
+				expect(todo).toBeNull()
+				done()
+			}).catch(e => done(e));
+		})
 	});
 	it('should return 404 if todo not found', done => {
 		let hexId = new ObjectID()
 		request(app)
-			.delete(`/todos/${hexId.toHexString()}`)
-			.expect(404)
-			.end(done)
+		.delete(`/todos/${hexId.toHexString()}`)
+		.expect(404)
+		.end(done)
 	});
 	it('should return 404 if ObjectID is invalid', done => {
 		let randomID = Math.round(Math.random() * 1000)
 		request(app)
-			.delete(`/todos/${randomID}`)
-			.expect(404)
-			.end(done)
+		.delete(`/todos/${randomID}`)
+		.expect(404)
+		.end(done)
 	});
 });
 
@@ -132,15 +132,15 @@ describe('PATCH /todos/:id', () => {
 			completed: true
 		};
 		request(app)
-			.patch(`/todos/${id}`)
-			.send(test)
-			.expect(200)
-			.expect(res => {
-				expect(res.body.todo.text).toBe(test.text);
-				expect(res.body.todo.completed).toBe(true);
-				expect(typeof res.body.todo.completedAt).toBe('number');
-			})
-			.end(done);
+		.patch(`/todos/${id}`)
+		.send(test)
+		.expect(200)
+		.expect(res => {
+			expect(res.body.todo.text).toBe(test.text);
+			expect(res.body.todo.completed).toBe(true);
+			expect(typeof res.body.todo.completedAt).toBe('number');
+		})
+		.end(done);
 
 	});
 	it('should clear completedAt when todo is not completed', done => {
@@ -150,15 +150,15 @@ describe('PATCH /todos/:id', () => {
 			completed: false
 		}
 		request(app)
-			.patch(`/todos/${id}`)
-			.send(test)
-			.expect(200)
-			.expect(res => {
-				expect(res.body.todo.text).toBe(test.text);
-				expect(res.body.todo.completed).toBe(false);
-				expect(res.body.todo.completedAt).toBeNull();
-			})
-			.end(done);
+		.patch(`/todos/${id}`)
+		.send(test)
+		.expect(200)
+		.expect(res => {
+			expect(res.body.todo.text).toBe(test.text);
+			expect(res.body.todo.completed).toBe(false);
+			expect(res.body.todo.completedAt).toBeNull();
+		})
+		.end(done);
 	});
 });
 
@@ -201,11 +201,12 @@ describe('POST /users', () => {
 			if(err) {
 				return done(err);
 			}
-			User.findOne({email}).then(user => {
+			User.findOne({email})
+			.then(user => {
 				expect(user).toBeDefined();
 				expect(user.password).not.toBe(password);
 				done();
-			})
+			}).catch(done);
 		});
 	});
 	it('shoud return validation errors if request invald', done => {
@@ -225,5 +226,52 @@ describe('POST /users', () => {
 		.send({email, password})
 		.expect(400)
 		.end(done);
+	});
+});
+
+describe('POST /users/login', () => {
+	it('should login user and return auth token', done => {
+		let {email, password, _id} = testUsers[1];
+		request(app)
+		.post('/users/login')
+		.send({email, password})
+		.expect(200)
+		.expect(res => {
+			expect(res.headers['x-auth']).toBeDefined();
+		})
+		.end((err, res) => {
+			if(err) {
+				return done(err);
+			}
+			User.findById(_id)
+			.then(user => {
+				expect(user.tokens[0]).toMatchObject({
+					access: 'auth',
+					token: res.headers['x-auth']
+				});
+				done();
+			}).catch(done);
+		});
+	});
+	it('should reject invalid login', done => {
+		let {email, _id} = testUsers[1];
+		let password = 'NotTheCorrectPassword';
+		request(app)
+		.post('/users/login')
+		.send({email, password})
+		.expect(400)
+		.expect(res => {
+			expect(res.headers['x-auth']).not.toBeDefined();
+		})
+		.end((err, res) => {
+			if(err) {
+				return done(err);
+			}
+			User.findById(_id)
+			.then(user => {
+				expect(user.tokens.length).toBe(0);
+				done();
+			}).catch(done);
+		});
 	});
 });
