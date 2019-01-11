@@ -19,7 +19,7 @@ const testUsers = [{
 	_id: UserTwoId,
 	email: 'eric@example.com',
 	password: 'SecondPassword',
-		tokens: [{
+	tokens: [{
 		access: 'auth',
 		token: jwt.sign({ _id: UserTwoId, access: 'auth'}, process.env.JWT_SECRET).toString()
 	}]
